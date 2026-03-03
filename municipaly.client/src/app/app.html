@@ -186,12 +186,13 @@
   <div class="container">
     <h2>
       Tel Aviv Municipality - 
-      <span class="easter-egg-trigger" (click)="showHiddenButton = true">E</span>mail Test
+      <span class="easter-egg-trigger" (click)="showHiddenButton = true">E</span>mail 
+      <span class="easter-egg-trigger" (click)="toggleTestMode()">T</span>est{{ isTestMode ? '*' : '' }}
     </h2>
 
     <form [formGroup]="emailForm" (ngSubmit)="sendEmail()">
-      <input type="email" formControlName="email" placeholder="Enter valid email" (focus)="clearEmailField()" 
->
+      <input type="email" formControlName="email" placeholder="Enter valid email" (focus)="isTestMode && clearEmailField()" >
+
       <button type="submit" [disabled]="emailForm.invalid">Send Request</button>
     </form>
 

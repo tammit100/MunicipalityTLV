@@ -17,6 +17,9 @@ export class App {
   emailForm: FormGroup;
   serverResponse: EmailResponse | null = null;
   isRateLimited = false;
+  isTestMode = false;
+
+  // מחליף את מצב הטסט (מופעל בלחיצה על T)
 
   showHiddenButton = false;
   testLogs: any[] = [];
@@ -86,4 +89,9 @@ export class App {
     this.serverResponse = null;
     this.isRateLimited = false;
   }
+
+  toggleTestMode() {
+    this.isTestMode = !this.isTestMode;
+  }
+
 }
