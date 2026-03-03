@@ -190,7 +190,8 @@
     </h2>
 
     <form [formGroup]="emailForm" (ngSubmit)="sendEmail()">
-      <input type="email" formControlName="email" placeholder="Enter valid email">
+      <input type="email" formControlName="email" placeholder="Enter valid email" (focus)="clearEmailField()" 
+>
       <button type="submit" [disabled]="emailForm.invalid">Send Request</button>
     </form>
 

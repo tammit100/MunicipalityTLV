@@ -56,21 +56,34 @@ export class App {
 
   runStressTest() {
     this.testLogs = []; // איפוס הלוג
-    const testEmail = "test@tel-aviv.gov.il";
+    const testEmail1 = "test1@tel-aviv.gov.il";
+    const testEmail2 = "test2@tel-aviv.gov.il";
 
     // בקשה ראשונה
-    this.emailService.sendEmail(testEmail).subscribe({
+    this.emailService.sendEmail(testEmail1).subscribe({
       next: (res) => this.addLog("Request 1", "SUCCESS", res),
       error: (err) => this.addLog("Request 1", "ERROR " + err.status, err.error)
     });
 
     // בקשה שנייה - נשלחת מיד (ללא המתנה)
-    this.emailService.sendEmail(testEmail).subscribe({
+    this.emailService.sendEmail(testEmail2).subscribe({
       next: (res) => this.addLog("Request 2", "SUCCESS", res),
       error: (err) => {
         const statusLabel = err.status === 429 ? "FAILED (Rate Limited)" : "ERROR " + err.status;
         this.addLog("Request 2", statusLabel, err.error);
       }
     });
+  }
+
+  clearEmailField() {
+    // initialize the email field to empty string
+    this.emailForm.get('email')?.setValue('');
+    
+    // mark the email field as untouched to reset validation state
+    this.emailForm.get('email')?.markAsUntouched();
+    
+    // initialize server response and rate limit state
+    this.serverResponse = null;
+    this.isRateLimited = false;
   }
 }
