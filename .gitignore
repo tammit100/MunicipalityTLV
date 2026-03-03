@@ -1,0 +1,19 @@
+# C# / Visual Studio
+.vs/
+*.suo
+*.user
+[Bb]in/
+[Oo]bj/
+*.pdb
+packages/
+
+# Angular
+node_modules/
+dist/
+.angular/
+.env*
+.vscode/
+
+# Generic
+.DS_Store
+*.log
