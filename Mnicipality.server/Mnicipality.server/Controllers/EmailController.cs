@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Mnicipality.server.Models;
 
 namespace Mnicipality.server.Controllers
 {
@@ -8,11 +9,11 @@ namespace Mnicipality.server.Controllers
     [ApiController]
     public class EmailController : ControllerBase
     {
-        // משתנה סטטי ששומר את התגובה המוצלחת האחרונה עבור שגיאת 429
+        // static parameter that saves the last response for 429 error
         public static EmailResponse? LastValidResponse { get; private set; }
 
         [HttpPost]
-        // הפעלת מדיניות ההגבלה שהגדרנו ב-Program.cs
+        // Enabling the restriction policy we defined in Program.cs
         [EnableRateLimiting("ThreeSecondPolicy")]
         public IActionResult PostEmail([FromBody] EmailRequest request)
         {
@@ -21,7 +22,7 @@ namespace Mnicipality.server.Controllers
                 return BadRequest("Invalid email");
             }
 
-            // יצירת אובייקט תגובה עם הזמן הנוכחי בשרת
+            // Create a response object with server's current time
             LastValidResponse = new EmailResponse
             {
                 Email = request.Email,
@@ -31,17 +32,6 @@ namespace Mnicipality.server.Controllers
             return Ok(LastValidResponse);
         }
     }
-
-    // מודלים (Dating Objects)
-    public class EmailRequest
-    {
-        public string Email { get; set; } = string.Empty;
-    }
-
-    public class EmailResponse
-    {
-        public string Email { get; set; } = string.Empty;
-        public DateTime ReceivedAt { get; set; }
-    }
+    
 }
 

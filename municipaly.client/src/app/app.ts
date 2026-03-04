@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RouterOutlet } from '@angular/router';
 import { EmailResponse, EmailService } from './services/email';
+import { timer } from 'rxjs';
+import { concatMap } from 'rxjs/operators'
 
 
 @Component({
@@ -54,27 +56,37 @@ export class App {
   private addLog(label: string, status: string, data: any) {
     const now = new Date();
     const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-    this.testLogs.push({ time: timeStr, label, status, data });
+    this.testLogs.unshift({ time: timeStr, label, status, data });
   }
 
   runStressTest() {
     this.testLogs = []; // איפוס הלוג
-    const testEmail1 = "test1@tel-aviv.gov.il";
-    const testEmail2 = "test2@tel-aviv.gov.il";
+    const testEmailSuccess = "testSuccess@tel-aviv.gov.il";
+    const testEmailFail = "testFail@tel-aviv.gov.il";
 
+    this.addLog("System", "INFO", `Starting Request 1...${testEmailSuccess}`);
     // בקשה ראשונה
-    this.emailService.sendEmail(testEmail1).subscribe({
-      next: (res) => this.addLog("Request 1", "SUCCESS", res),
-      error: (err) => this.addLog("Request 1", "ERROR " + err.status, err.error)
-    });
-
-    // בקשה שנייה - נשלחת מיד (ללא המתנה)
-    this.emailService.sendEmail(testEmail2).subscribe({
-      next: (res) => this.addLog("Request 2", "SUCCESS", res),
-      error: (err) => {
-        const statusLabel = err.status === 429 ? "FAILED (Rate Limited)" : "ERROR " + err.status;
-        this.addLog("Request 2", statusLabel, err.error);
-      }
+    this.emailService.sendEmail(testEmailSuccess).subscribe({
+      next: (res) => {
+        this.addLog("Request 1", "SUCCESS (200 OK)", res);
+        
+        // כאן אנחנו מייצרים את ההמתנה של השניה
+        this.addLog("System", "WAITING", "Waiting 1 second before Request 2...");
+        
+        timer(1000).subscribe(() => {
+          // בקשה שנייה - תישלח בדיוק אחרי שניה
+          this.addLog("System", "INFO", `Starting Request 1...${testEmailFail}`);
+          
+          this.emailService.sendEmail(testEmailFail).subscribe({
+            next: (res2) => this.addLog("Request 2", "SUCCESS (Unexpected!)", res2),
+            error: (err) => {
+              const label = err.status === 429 ? "FAILED (429 Too Many Requests)" : "ERROR " + err.status;
+              this.addLog("Request 2", label, err.error);
+            }
+          });
+        });
+      },
+      error: (err) => this.addLog("Request 1", "FAILED", err.error)
     });
   }
 
@@ -89,6 +101,14 @@ export class App {
     this.serverResponse = null;
     this.isRateLimited = false;
   }
+
+  deleteTestLogs(){
+    this.testLogs = ["הלוג נמחק בהצלחה!"];
+  }
+
+  toggleStressMode() {
+    this.showHiddenButton = !this.showHiddenButton
+  } 
 
   toggleTestMode() {
     this.isTestMode = !this.isTestMode;

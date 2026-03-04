@@ -186,7 +186,7 @@
   <div class="container">
     <h2>
       Tel Aviv Municipality - 
-      <span class="easter-egg-trigger" (click)="showHiddenButton = true">E</span>mail 
+      <span class="easter-egg-trigger" (click)="toggleStressMode()">E</span>mail 
       <span class="easter-egg-trigger" (click)="toggleTestMode()">T</span>est{{ isTestMode ? '*' : '' }}
     </h2>
 
@@ -196,45 +196,78 @@
       <button type="submit" [disabled]="emailForm.invalid">Send Request</button>
     </form>
 
-    <!-- תוצאה רגילה -->
-    <div *ngIf="serverResponse && !showHiddenButton" class="result-box">
-      <p *ngIf="isRateLimited" class="error-text">Error 429: Too many requests!</p>
-      <div class="time-display">
-        <strong>Server Time:</strong> {{ serverResponse.receivedAt | date:'HH:mm:ss' }} <br>
-        <strong>Email:</strong> {{ serverResponse.email }}
-      </div>
-    </div>
 
-    <!-- לוג ה-Stress Test -->
-    <div *ngIf="showHiddenButton" class="stress-test-container">
-      <button type="button" class="btn-stress-test" (click)="runStressTest()">
-        🚀 Run Stress Test
-      </button>
-
-      <div *ngIf="testLogs.length > 0" class="debug-console">
-        <div class="console-header">
-          <strong>DEBUG CONSOLE</strong>
-          <button type="button" class="btn-clear" (click)="testLogs = []">Clear</button>
+    @if(serverResponse){
+      <!-- Response -->
+      <div class="result-box">
+        @if(isRateLimited){
+          <p *ngIf="isRateLimited" class="error-text">Error 429: Too many requests!</p>
+        }
+        <div class="time-display">
+          <strong>Server Time:</strong> {{ serverResponse.receivedAt | date:'HH:mm:ss' }} <br>
+          <strong>Email:</strong> {{ serverResponse.email }}
         </div>
-        
-        <div *ngFor="let log of testLogs" 
-             class="log-entry" 
-             [ngClass]="log.status.includes('SUCCESS') ? 'success' : 'error'">
-          
-          <span class="log-time">[{{ log.time }}]</span> 
-          <b [ngClass]="log.status.includes('SUCCESS') ? 'log-status-success' : 'log-status-error'">
-            {{ log.status }}
-          </b>
-          
-          <div class="log-label">Label: <span style="color: #d4d4d4">{{ log.label }}</span></div>
-          
-          <div class="log-data-container">
-            <span class="log-label">Data:</span>
-            <pre class="json-block">{{ log.data | json }}</pre>
+      </div>
+    }
+  
+    <!-- stress test -->
+    @if(showHiddenButton){
+      <div class="stress-test-container">
+        <button type="button" class="btn-stress-test" (click)="runStressTest()">
+          🚀 Run Stress Test
+        </button>
+        @if(testLogs.length > 0) {
+
+          <div class="debug-console">
+            <div class="console-header">
+              <strong>DEBUG CONSOLE</strong>
+              <button type="button" class="btn-clear" (click)="deleteTestLogs()">Clear</button>
+            </div>
+
+            @for (log of testLogs; track log) {
+
+              <div class="log-entry" 
+                [ngClass]="log.status.includes('SUCCESS') ? 'success' : 'error'">
+                
+                <span class="log-time">[{{ log.time }}]</span> 
+                <b [ngClass]="log.status.includes('SUCCESS') ? 'log-status-success' : 'log-status-error'">
+                {{ log.status }}
+                </b>
+                
+                <div class="log-label">Label: <span style="color: #d4d4d4">{{ log.label }}</span></div>
+                
+                <div class="log-data-container">
+                <span class="log-label">Data:</span>
+                <pre class="json-block">{{ log.data | json }}</pre>
+                </div>
+              </div>
+            } @empty {
+              <p>אין לוגים להצגה</p>
+            }
+            
+            <!-- <div *ngFor="let log of testLogs" 
+                class="log-entry" 
+                [ngClass]="log.status.includes('SUCCESS') ? 'success' : 'error'">
+              
+              <span class="log-time">[{{ log.time }}]</span> 
+              <b [ngClass]="log.status.includes('SUCCESS') ? 'log-status-success' : 'log-status-error'">
+                {{ log.status }}
+              </b>
+              
+              <div class="log-label">Label: <span style="color: #d4d4d4">{{ log.label }}</span></div>
+              
+              <div class="log-data-container">
+                <span class="log-label">Data:</span>
+                <pre class="json-block">{{ log.data | json }}</pre>
+              </div>
+            </div> -->
           </div>
-        </div>
+        }
+        
       </div>
-    </div>
+    }
+   
+    
   </div>
 </main>
 
