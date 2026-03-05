@@ -6,7 +6,7 @@ import { RouterOutlet } from '@angular/router';
 import { EmailResponse, EmailService } from './services/email';
 import { timer } from 'rxjs';
 import { concatMap } from 'rxjs/operators'
-
+import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -17,8 +17,8 @@ import { concatMap } from 'rxjs/operators'
 })
 export class App {
   emailForm: FormGroup;
-  serverResponse: EmailResponse | null = null;
-  isRateLimited = false;
+  isRateLimited = signal<boolean>(false);
+  serverResponse = signal<EmailResponse | null>(null);
   isTestMode = false;
 
   // מחליף את מצב הטסט (מופעל בלחיצה על T)
@@ -36,17 +36,17 @@ export class App {
     
     if (this.emailForm.invalid) return;
 
-    this.isRateLimited = false;
+    this.isRateLimited.set(false);
     const emailValue = this.emailForm.value.email;
 
     this.emailService.sendEmail(emailValue).subscribe({
       next: (res) => {
-        this.serverResponse = res;
+        this.serverResponse.set(res);
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 429) {
-          this.isRateLimited = true;
-          this.serverResponse = err.error; // server response
+          this.isRateLimited.set(true);
+          this.serverResponse.set(err.error); // המידע שה-Interceptor העביר הלאה
         }
       }
     });
@@ -79,9 +79,15 @@ export class App {
           
           this.emailService.sendEmail(testEmailFail).subscribe({
             next: (res2) => this.addLog("Request 2", "SUCCESS (Unexpected!)", res2),
-            error: (err) => {
-              const label = err.status === 429 ? "FAILED (429 Too Many Requests)" : "ERROR " + err.status;
-              this.addLog("Request 2", label, err.error);
+            error: (err: HttpErrorResponse) => {
+              const is429 = err.status === 429;
+              const statusText = is429 ? "FAILED (429 Too Many Requests)" : `ERROR ${err.status}`;
+    
+              this.addLog("Request 2", statusText, err.error);
+
+              // אם אתה משתמש ב-Signals, זה הזמן לעדכן גם אותם כדי שהמסך הראשי יתעדכן
+              this.isRateLimited.set(is429);
+              this.serverResponse.set(err.error);
             }
           });
         });
@@ -98,8 +104,8 @@ export class App {
     this.emailForm.get('email')?.markAsUntouched();
     
     // initialize server response and rate limit state
-    this.serverResponse = null;
-    this.isRateLimited = false;
+    this.serverResponse.set(null);
+    this.isRateLimited.set(false);
   }
 
   deleteTestLogs(){

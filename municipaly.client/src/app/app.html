@@ -197,15 +197,15 @@
     </form>
 
 
-    @if(serverResponse){
+    @if(serverResponse()){
       <!-- Response -->
       <div class="result-box">
-        @if(isRateLimited){
-          <p *ngIf="isRateLimited" class="error-text">Error 429: Too many requests!</p>
+        @if(isRateLimited()){
+          <p class="error-text">Error 429: Too many requests!</p>
         }
-        <div class="time-display">
-          <strong>Server Time:</strong> {{ serverResponse.receivedAt | date:'HH:mm:ss' }} <br>
-          <strong>Email:</strong> {{ serverResponse.email }}
+        <div class="time-display"?>
+          <strong>Server Time:</strong> {{ serverResponse()?.receivedAt | date:'HH:mm:ss' }} <br>
+          <strong>Email:</strong> {{ serverResponse()?.email }}
         </div>
       </div>
     }
